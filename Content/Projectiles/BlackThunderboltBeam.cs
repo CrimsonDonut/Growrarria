@@ -33,7 +33,7 @@ namespace Growrarria.Content.Projectiles
 		// How far out from the player's center the beam originates, along the aim
 		// direction - this is what pushes the start point out to the blade instead of
 		// the middle of the character. Tune this to taste; bigger = further out.
-		private const float MuzzleDistance = 36f;
+		private const float MuzzleDistance = 44f;
 
 		// Current length of the beam this tick, used by both drawing and hit detection.
 		private float beamLength = 32f;
@@ -143,7 +143,7 @@ namespace Growrarria.Content.Projectiles
 			Lighting.AddLight(Projectile.Center, 0.55f, 0.15f, 0.65f);
 			if (Main.rand.NextBool(2))
 			{
-				Dust.NewDust(endPoint, 2, 2, DustID.PurpleTorch, 0f, 0f, 0, default, 1.3f);
+				Dust.NewDust(endPoint, 2, 2, DustID.RedTorch, 0f, 0f, 0, default, 1.3f);
 			}
 		}
 

@@ -57,7 +57,7 @@ namespace Growrarria.Content.Items
 		//   Y: slides the sprite up (-) / down (+) relative to that aim line
 		public override Vector2? HoldoutOffset()
 		{
-			return new Vector2(0f, 0f);
+			return new Vector2(-10f, 0f);
 		}
  
 		public override bool Shoot(Player player, EntitySource_ItemUse_WithAmmo source, Vector2 position, Vector2 velocity, int type, int damage, float knockback)
