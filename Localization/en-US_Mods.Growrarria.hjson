@@ -6,14 +6,26 @@ Items: {
 		DisplayName: Flame Scythe
 		Tooltip:
 			'''
-			Template of an item
-			Replacing this tooltip is duty 
-			It's snowing on Mt.Fuji
+			The flame represents all of the fallen heroes that served in the Armed Forces.
+			Left-click to fire a black lightning bolt that bounces from walls, and right-click to fire 
+			a rotating flame sickle that passes through tiles.
 			'''
+	}
+
+	FlameEye: {
+		DisplayName: Burning Eyes
+		Tooltip: Need some eyedrops for those?
+	}
+
+	BlazingElectroWings: {
+		DisplayName: Blazing Electro Wings
+		Tooltip: It's shocking what they're doing with wings these days.
 	}
 }
 
 Projectiles: {
 	BlackThunderboltBeam.DisplayName: Black Thunderbolt Beam
 	SkyThunderbolt.DisplayName: Sky Thunderbolt
+	FlameScytheProjectile.DisplayName: Flame Scythe Projectile
+	FlameBreath.DisplayName: Flame Breath
 }

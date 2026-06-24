@@ -1,221 +1,157 @@
+using System;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Terraria;
-using Terraria.GameContent;
+using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace Growrarria.Content.Projectiles
 {
-	// This is the "left click" beam. It does not move like a normal projectile.
-	// Each instance only lives for ~2 ticks (set in AI), and the item re-fires a fresh
-	// one every Item.useTime ticks for as long as you hold the mouse button - this is
-	// the same trick vanilla's Heat Ray uses to fake a continuous beam.
-	//
-	// Every tick it does a manual raycast from the player to the cursor, stopping at the
-	// first solid tile it finds. That tile is what gets mined (via Player.PickTile) and
-	// that distance is what the beam is visually stretched to.
-	public class BlackThunderboltBeam : ModProjectile
-	{
-		// How far the beam can reach if nothing solid is in the way. ~44 tiles.
-		private const float MaxRange = 700f;
+    public class BlackThunderboltBeam : ModProjectile
+    {
+        private int Bounces
+        {
+            get => (int)Projectile.ai[0];
+            set => Projectile.ai[0] = value;
+        }
 
-		// How strong the beam mines. 200+ is enough to break almost anything in vanilla,
-		// including most Hardmode ores. Lower this if you want it to respect normal
-		// pickaxe-power progression instead.
-		private const int PickPower = 210;
+        public override void SetDefaults()
+        {
+            // Maximized dimensions for a huge footprint canvas
+            Projectile.width = 24;
+            Projectile.height = 24;
+            Projectile.friendly = true;
+            Projectile.hostile = false;
+            Projectile.DamageType = DamageClass.Magic;
+            Projectile.penetrate = -1;
+            Projectile.tileCollide = true;
+            Projectile.ignoreWater = true;
 
-		// The texture is a vertical spritesheet: 3 frames of equal height stacked on
-		// top of each other. FrameDelay is how many ticks each frame is shown for.
-		private const int FrameCount = 3;
-		private const int FrameDelay = 6;
+            // Instantly updates across the room
+            Projectile.extraUpdates = 100;
+            Projectile.timeLeft = 300;
 
-		// How far out from the player's center the beam originates, along the aim
-		// direction - this is what pushes the start point out to the blade instead of
-		// the middle of the character. Tune this to taste; bigger = further out.
-		private const float MuzzleDistance = 44f;
+            Projectile.usesLocalNPCImmunity = true;
+            Projectile.localNPCHitCooldown = 12;
+        }
 
-		// Current length of the beam this tick, used by both drawing and hit detection.
-		private float beamLength = 32f;
+        public override void AI()
+        {
+            // 1. Massive Light Engine: Casts an overwhelming volcanic glow
+            Lighting.AddLight(Projectile.Center, 2.5f, 0.7f, 0.05f);
 
-		public override string Texture => "Growrarria/Content/Projectiles/BlackThunderboltBeam";
+            // Calculate perpendicular vectors to puff out aura details to the sides
+            Vector2 perp = new Vector2(-Projectile.velocity.Y, Projectile.velocity.X);
+            if (perp != Vector2.Zero) perp.Normalize();
 
-		public override void SetStaticDefaults()
-		{
-			Main.projFrames[Projectile.type] = FrameCount;
-		}
+            // 2. The Core Thick Black Thunderbolt (Dense void center)
+            for (int i = 0; i < 2; i++)
+            {
+                Vector2 spawnPos = Projectile.Center + (perp * Main.rand.NextFloat(-5f, 5f)) - new Vector2(4);
+                int blackDust = Dust.NewDust(spawnPos, 8, 8, DustID.Smoke, 
+                    0f, 0f, 230, Color.Black, Main.rand.NextFloat(1.6f, 2.4f));
+                
+                Main.dust[blackDust].noGravity = true;
+                Main.dust[blackDust].velocity *= 0.01f; // Lock perfectly straight
+                Main.dust[blackDust].color = new Color(5, 5, 8, 255); 
+            }
 
-		public override void SetDefaults()
-		{
-			Projectile.width = 16;
-			Projectile.height = 16;
-			Projectile.aiStyle = -1; // fully custom AI, see below
-			Projectile.friendly = true;
-			Projectile.hostile = false;
-			Projectile.DamageType = DamageClass.Magic;
-			Projectile.penetrate = -1;
-			Projectile.timeLeft = 2;
-			Projectile.tileCollide = false; // we handle tile interaction manually
-			Projectile.ignoreWater = true;
-			Projectile.usesLocalNPCImmunity = true;
-			Projectile.localNPCHitCooldown = 10;
-		}
+            // 3. Supercharged Fiery Outer Aura (Chaotic, hyper-dense plasma cloud)
+            // Splitting into three hyper-active brackets for intense texture layering
+            
+            // Layer A: Bright Solar Flare Liquid Fire (Extremely bright & energetic)
+            if (Main.rand.NextBool(1)) // Spawns on every single sub-tick loop
+            {
+                Vector2 auraPos1 = Projectile.Center + (perp * Main.rand.NextFloat(-12f, 12f));
+                int solarDust = Dust.NewDust(auraPos1, 1, 1, DustID.SolarFlare, 
+                    0f, 0f, 50, default, Main.rand.NextFloat(1.2f, 1.8f));
+                Main.dust[solarDust].noGravity = true;
+                // Gives it a high-velocity violent outwards crackle
+                Main.dust[solarDust].velocity = perp * Main.rand.NextFloat(-1.5f, 1.5f); 
+            }
 
-		public override void AI()
-		{
-			Player player = Main.player[Projectile.owner];
+            // Layer B: Blazing Orange Plasma Standard Fire
+            if (Main.rand.NextBool(2))
+            {
+                Vector2 auraPos2 = Projectile.Center + (perp * Main.rand.NextFloat(-16f, 16f));
+                int orangeDust = Dust.NewDust(auraPos2, 1, 1, DustID.OrangeTorch, 
+                    0f, 0f, 80, default, Main.rand.NextFloat(1.5f, 2.2f));
+                Main.dust[orangeDust].noGravity = true;
+                Main.dust[orangeDust].velocity = perp * Main.rand.NextFloat(-0.8f, 0.8f);
+            }
 
-			if (!player.active || player.dead)
-			{
-				Projectile.Kill();
-				return;
-			}
+            // Layer C: Volcanic Deep Red Fringe Heat Sparks
+            if (Main.rand.NextBool(3))
+            {
+                Vector2 auraPos3 = Projectile.Center + (perp * Main.rand.NextFloat(-22f, 22f));
+                int redDust = Dust.NewDust(auraPos3, 1, 1, DustID.Crimstone, 
+                    0f, 0f, 100, default, Main.rand.NextFloat(1.0f, 1.6f));
+                Main.dust[redDust].noGravity = true;
+                Main.dust[redDust].velocity = perp * Main.rand.NextFloat(-2.0f, 2.0f);
+            }
+        }
 
-			// Keep refreshing the lifespan while the item is actively channeled by its owner.
-			if (player.channel && Projectile.owner == Main.myPlayer)
-			{
-				Projectile.timeLeft = 2;
-			}
+        public override bool OnTileCollide(Vector2 oldVelocity)
+        {
+            Bounces++;
+            if (Bounces > 5)
+            {
+                Projectile.Kill();
+                return false;
+            }
 
-			// Track the cursor every tick (only the owning client needs to compute this).
-			if (Projectile.owner == Main.myPlayer)
-			{
-				Vector2 toMouse = Main.MouseWorld - player.Center;
-				if (toMouse == Vector2.Zero)
-				{
-					toMouse = -Vector2.UnitY;
-				}
+            // Massive magmatic detonation at collision points
+            if (Main.netMode != NetmodeID.Server)
+            {
+                for (int i = 0; i < 18; i++)
+                {
+                    int d1 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Smoke, 
+                        Main.rand.NextFloat(-4f, 4f), Main.rand.NextFloat(-4f, 4f), 100, Color.Black, 1.8f);
+                    Main.dust[d1].noGravity = true;
+                    Main.dust[d1].color = new Color(5, 5, 8, 255);
 
-				toMouse.Normalize();
+                    int d2 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.SolarFlare, 
+                        Main.rand.NextFloat(-5f, 5f), Main.rand.NextFloat(-5f, 5f), 50, default, 2.0f);
+                    Main.dust[d2].noGravity = true;
 
-				if (Projectile.velocity != toMouse)
-				{
-					Projectile.velocity = toMouse;
-					Projectile.netUpdate = true;
-				}
-			}
+                    int d3 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.OrangeTorch, 
+                        Main.rand.NextFloat(-6f, 6f), Main.rand.NextFloat(-6f, 6f), 50, default, 1.6f);
+                    Main.dust[d3].noGravity = true;
+                }
+            }
 
-			// Use the player's center to figure out which way to aim (this is the
-			// rotation pivot), then push the actual beam origin out along that
-			// direction so it starts at the blade instead of the character's middle.
-			Vector2 direction = Projectile.velocity;
-			if (direction == Vector2.Zero)
-			{
-				direction = -Vector2.UnitY;
-			}
+            if (Math.Abs(Projectile.velocity.X - oldVelocity.X) > float.Epsilon)
+            {
+                Projectile.velocity.X = -oldVelocity.X;
+            }
+            if (Math.Abs(Projectile.velocity.Y - oldVelocity.Y) > float.Epsilon)
+            {
+                Projectile.velocity.Y = -oldVelocity.Y;
+            }
 
-			Vector2 origin = player.Center + direction * MuzzleDistance;
+            return false;
+        }
 
-			// Only search out to where the cursor actually is (capped by MaxRange), not
-			// always the full MaxRange. This is what makes the beam stop near your cursor
-			// in open air instead of always blasting out to max distance.
-			float cursorDistance = Vector2.Distance(origin, Main.MouseWorld);
-			float castLength = MathHelper.Clamp(cursorDistance, 16f, MaxRange);
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            target.AddBuff(BuffID.OnFire3, 240); // Hellfire debuff
+        }
 
-			Vector2 endPoint = FindBeamEnd(origin, direction, castLength, out bool hitTile, out Point tileHit);
-			beamLength = Vector2.Distance(origin, endPoint);
+        public override void OnKill(int timeLeft)
+        {
+            SoundEngine.PlaySound(SoundID.Item14 with { Volume = 0.7f, Pitch = -0.2f }, Projectile.position);
+            
+            if (Main.netMode != NetmodeID.Server)
+            {
+                for (int i = 0; i < 40; i++)
+                {
+                    int d = Dust.NewDust(Projectile.Center, 1, 1, DustID.SolarFlare,
+                        Main.rand.NextFloat(-7f, 7f), Main.rand.NextFloat(-7f, 7f), 0, default, 2.2f);
+                    Main.dust[d].noGravity = true;
+                }
+            }
+        }
 
-			Projectile.Center = origin + direction * (beamLength / 2f);
-			Projectile.rotation = direction.ToRotation();
-
-			player.ChangeDir(direction.X < 0 ? -1 : 1);
-			player.itemRotation = direction.ToRotation();
-			if (player.direction < 0)
-			{
-				player.itemRotation += MathHelper.Pi;
-			}
-
-			// Only mine if the tile the beam stopped at is the same tile your mouse is
-			// actually over - not just whatever solid block happens to be first in the
-			// beam's path. If something else is in the way, the beam still visually
-			// stops there, it just won't break it.
-			Point mouseTile = new Point((int)(Main.MouseWorld.X / 16f), (int)(Main.MouseWorld.Y / 16f));
-			if (hitTile && player.controlUseItem && tileHit == mouseTile)
-			{
-				player.PickTile(tileHit.X, tileHit.Y, PickPower);
-			}
-
-			// Cycle through the 3 frames based on the global tick counter rather than a
-			// per-instance timer - this instance only lives 2 ticks before a fresh one
-			// replaces it, so anything counted on "this" object would just reset constantly.
-			Projectile.frame = (int)(Main.GameUpdateCount / FrameDelay) % FrameCount;
-
-			Lighting.AddLight(Projectile.Center, 0.55f, 0.15f, 0.65f);
-			if (Main.rand.NextBool(2))
-			{
-				Dust.NewDust(endPoint, 2, 2, DustID.RedTorch, 0f, 0f, 0, default, 1.3f);
-			}
-		}
-
-		// Steps along the line from start to start + direction * maxLength, 4 pixels at
-		// a time, until it finds a solid tile. Returns the point where the beam should stop.
-		private Vector2 FindBeamEnd(Vector2 start, Vector2 direction, float maxLength, out bool hitTile, out Point tileHit)
-		{
-			const float step = 4f;
-			hitTile = false;
-			tileHit = Point.Zero;
-			Vector2 point = start + direction * maxLength;
-
-			for (float traveled = 0f; traveled < maxLength; traveled += step)
-			{
-				Vector2 sample = start + direction * traveled;
-				int tileX = (int)(sample.X / 16f);
-				int tileY = (int)(sample.Y / 16f);
-				Tile tile = Framing.GetTileSafely(tileX, tileY);
-
-				if (tile.HasTile && Main.tileSolid[tile.TileType] && !Main.tileSolidTop[tile.TileType])
-				{
-					hitTile = true;
-					tileHit = new Point(tileX, tileY);
-					point = sample;
-					break;
-				}
-			}
-
-			return point;
-		}
-
-		// Custom hit detection: since this "projectile" is really just a thin line from the
-		// player to endPoint, we test that line against each NPC's hitbox instead of using
-		// the projectile's tiny default hitbox. This is the same trick ExampleLaser.cs uses.
-		public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
-		{
-			Player player = Main.player[Projectile.owner];
-			Vector2 direction = Projectile.velocity;
-			Vector2 start = player.Center + direction * MuzzleDistance;
-			Vector2 end = start + direction * beamLength;
-			float point = 0f;
-			return Collision.CheckAABBvLineCollision(targetHitbox.TopLeft(), targetHitbox.Size(), start, end, 18f, ref point);
-		}
-
-		public override bool PreDraw(ref Color lightColor)
-		{
-			Player player = Main.player[Projectile.owner];
-			Texture2D texture = TextureAssets.Projectile[Projectile.type].Value;
-
-			// The texture is 3 frames stacked vertically, each the same height.
-			// Projectile.frame (set in AI) picks which one to slice out and draw.
-			int frameHeight = texture.Height / Main.projFrames[Projectile.type];
-			Rectangle sourceRect = new Rectangle(0, frameHeight * Projectile.frame, texture.Width, frameHeight);
-
-			Vector2 direction = Projectile.velocity;
-			Vector2 origin = player.Center + direction * MuzzleDistance;
-			Vector2 drawOrigin = new Vector2(0f, frameHeight / 2f);
-			float scaleX = beamLength / texture.Width;
-
-			Main.EntitySpriteDraw(
-				texture,
-				origin - Main.screenPosition,
-				sourceRect,
-				Color.White,
-				direction.ToRotation(),
-				drawOrigin,
-				new Vector2(scaleX, 1f),
-				SpriteEffects.None,
-				0
-			);
-
-			return false;
-		}
-	}
+        public override bool PreDraw(ref Color lightColor) => false;
+    }
 }

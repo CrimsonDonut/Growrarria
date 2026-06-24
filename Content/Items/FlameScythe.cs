@@ -7,85 +7,156 @@ using Growrarria.Content.Projectiles;
 
 namespace Growrarria.Content.Items
 {
-	// This is a basic item template.
-	// Please see tModLoader's ExampleMod for every other example:
-	// https://github.com/tModLoader/tModLoader/tree/stable/ExampleMod
-	public class FlameScythe : ModItem
-	{
-		// The Display Name and Tooltip of this item can be edited in the 'Localization/en-US_Mods.Growrarria.hjson' file.
-		public override void SetDefaults()
-		{
-			Item.damage = 120;
-			Item.DamageType = DamageClass.Magic;
-			Item.mana = 1;
- 
-			// These should reflect your actual sprite's pixel size (64x56) - matters for
-			// the inventory icon scaling and the item's own hitbox.
-			Item.width = 64;
-			Item.height = 56;
- 
-			// Low useTime + autoReuse + channel = it keeps re-firing the beam every few ticks
-			// for as long as you hold the mouse button, just like vanilla's Heat Ray.
-			Item.useTime = 4;
-			Item.useAnimation = 4;
-			Item.useStyle = ItemUseStyleID.Shoot;
-			Item.noMelee = true;
-			Item.autoReuse = true;
-			Item.channel = true;
- 
-			Item.knockBack = 4f;
-			Item.value = Item.sellPrice(gold: 8);
-			Item.rare = ItemRarityID.LightRed;
-			Item.UseSound = SoundID.Item43;
- 
-			Item.shoot = ModContent.ProjectileType<BlackThunderboltBeam>();
-			Item.shootSpeed = 12f; // only sets the initial aim direction, the beam recalculates every tick
-		}
- 
-		// AltFunctionUse is what lets the right mouse button trigger a different attack.
-		// When the player right-clicks, player.altFunctionUse gets set to 2 and
-		// that's checked inside Shoot() below.
-		public override bool AltFunctionUse(Player player) => true;
- 
-		// Only applies to useStyle == Shoot (which this item uses). tModLoader's automatic
-		// math for where the sprite sits in the player's hand assumes a "standard" sprite
-		// size/anchor, and breaks once your art doesn't match that. There's no formula for
-		// this - in-game, swap the values below in small steps (try 4-8px at a time) until
-		// the scythe's handle actually sits in the character's hand instead of floating off
-		// to the side:
-		//   X: slides the sprite forward (+) / backward (-) along your aim direction
-		//   Y: slides the sprite up (-) / down (+) relative to that aim line
-		public override Vector2? HoldoutOffset()
-		{
-			return new Vector2(-10f, 0f);
-		}
- 
-		public override bool Shoot(Player player, EntitySource_ItemUse_WithAmmo source, Vector2 position, Vector2 velocity, int type, int damage, float knockback)
-		{
-			if (player.altFunctionUse == 2)
-			{
-				// Right click: drop a thunderbolt from the sky onto the cursor's location.
-				Vector2 target = Main.MouseWorld;
-				Vector2 spawnPosition = new Vector2(target.X, target.Y - 2000f);
-				Vector2 strikeVelocity = new Vector2(0f, 60f); // straight down, fast
- 
-				Projectile.NewProjectile(source, spawnPosition, strikeVelocity, ModContent.ProjectileType<SkyThunderbolt>(), damage, knockback, player.whoAmI);
-				return false;
-			}
- 
-			// Left click: the stretching beam towards the cursor.
-			Projectile.NewProjectile(source, position, velocity, type, damage, knockback, player.whoAmI);
-			return false;
-		}
- 
-		public override void AddRecipes()
-		{
-			// Placeholder recipe so you can craft it for testing. Change this to whatever you like.
-			Recipe recipe = CreateRecipe();
-			recipe.AddIngredient(ItemID.HellstoneBar, 12);
-			recipe.AddIngredient(ItemID.SoulofNight, 6);
-			recipe.AddTile(TileID.Anvils);
-			recipe.Register();
-		}
-	}
+    public class FlameScythe : ModItem
+    {
+        public override void SetDefaults()
+        {
+            Item.damage = 70;
+            Item.DamageType = DamageClass.Magic; 
+            Item.mana = 10;
+
+            Item.width = 64;
+            Item.height = 56;
+
+            Item.useTime      = 20;
+            Item.useAnimation = 20;
+            Item.useStyle     = ItemUseStyleID.Shoot;
+            Item.noMelee      = true; 
+            Item.autoReuse    = true;
+
+            Item.knockBack = 4f;
+            Item.value     = Item.sellPrice(gold: 8);
+            Item.rare      = ItemRarityID.LightRed;
+            Item.UseSound  = SoundID.Item43;
+
+            Item.shoot      = ModContent.ProjectileType<BlackThunderboltBeam>();
+            Item.shootSpeed = 18f;
+        }
+
+        // Casts a bright volcanic glow when dropped on the ground
+        public override void PostUpdate()
+        {
+            Lighting.AddLight(Item.Center, 1.5f, 0.5f, 0.05f);
+        }
+
+        public override bool AltFunctionUse(Player player) => true;
+
+        public override Vector2? HoldoutOffset()
+        {
+            if (Main.LocalPlayer.altFunctionUse == 2)
+                return null; 
+
+            return new Vector2(-10f, 0f);
+        }
+
+        public override bool CanUseItem(Player player)
+        {
+            if (player.altFunctionUse == 2)
+            {
+                // Right-click setup
+                Item.useStyle     = ItemUseStyleID.Swing;
+                Item.useTime      = 25;
+                Item.useAnimation = 25;
+                Item.noMelee      = false;
+				
+
+            }
+            else
+            {
+                // Left-click setup
+                Item.useStyle     = ItemUseStyleID.Shoot;
+                Item.useTime      = 20;
+                Item.useAnimation = 20;
+                Item.noMelee      = true;  
+            }
+            return true;
+        }
+
+        // EFFECT 1: Spawns fiery dust tracing the slash arc during the Melee Right-Click Swing
+        public override void MeleeEffects(Player player, Rectangle hitbox)
+        {
+            if (player.altFunctionUse == 2)
+            {
+                // Cast light along the swinging hitbox
+                Lighting.AddLight(hitbox.Center.ToVector2(), 1.5f, 0.4f, 0.1f);
+
+                // Spawn hyper-vibrant Solar Flare fluid fire along the scythe blade arc
+                if (Main.rand.NextBool(1))
+                {
+                    int d1 = Dust.NewDust(new Vector2(hitbox.X, hitbox.Y), hitbox.Width, hitbox.Height, DustID.SolarFlare, 
+                        player.velocity.X * 0.2f, player.velocity.Y * 0.2f, 100, default, Main.rand.NextFloat(1.2f, 1.8f));
+                    Main.dust[d1].noGravity = true;
+                    Main.dust[d1].velocity *= 0.5f;
+                }
+
+                // Mix in intense orange trail sparks
+                if (Main.rand.NextBool(2))
+                {
+                    int d2 = Dust.NewDust(new Vector2(hitbox.X, hitbox.Y), hitbox.Width, hitbox.Height, DustID.OrangeTorch, 
+                        0f, 0f, 50, default, Main.rand.NextFloat(1.0f, 1.5f));
+                    Main.dust[d2].noGravity = true;
+                }
+            }
+        }
+
+        // EFFECT 2: The correct, verified hook for charging holdout frames (Left-Click Shoot)
+        public override void UseStyle(Player player, Rectangle heldItemFrame)
+        {
+            // Only process if using the holdout/shoot style (Left-Click) and actively animating
+            if (player.altFunctionUse != 2 && player.itemAnimation > 0)
+            {
+                // Cast light at the player's held weapon coordinates
+                Lighting.AddLight(player.itemLocation, 1.2f, 0.35f, 0.05f);
+
+                if (Main.rand.NextBool(3))
+                {
+                    // Emit sparks pushing forward from the item's location
+                    int d = Dust.NewDust(player.itemLocation, 8, 8, DustID.SolarFlare, 
+                        player.direction * Main.rand.NextFloat(2f, 5f), Main.rand.NextFloat(-2f, 2f), 100, default, 1.2f);
+                    Main.dust[d].noGravity = true;
+                }
+            }
+        }
+
+        public override void OnHitNPC(Player player, NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            if (player.altFunctionUse == 2)
+            {
+                target.AddBuff(BuffID.OnFire3, 180); // Hellfire debuff upon physical slash contact
+            }
+        }
+
+        public override bool Shoot(Player player, EntitySource_ItemUse_WithAmmo source,
+            Vector2 position, Vector2 velocity, int type, int damage, float knockback)
+        {
+            if (player.altFunctionUse == 2)
+            {
+                // Right-click: spinning fire scythe projectile
+                Projectile.NewProjectile(
+                    source,
+                    player.Center,
+                    velocity * 1.5f,
+                    ModContent.ProjectileType<FlameScytheProjectile>(),
+                    damage * 2,
+                    knockback,
+                    player.whoAmI
+                );
+                return false;
+            }
+
+            // Left-click: Instant lightning beam
+            Projectile.NewProjectile(source, position, velocity, type, damage, knockback, player.whoAmI);
+            return false;
+        }
+
+        public override void AddRecipes()
+        {
+            Recipe recipe = CreateRecipe();
+            recipe.AddIngredient(ItemID.HellstoneBar, 12);
+            recipe.AddIngredient(ItemID.SoulofNight, 6);
+			recipe.AddIngredient(ItemID.DeathSickle, 1);
+            recipe.AddTile(TileID.Anvils);
+            recipe.Register();
+        }
+    }
 }
