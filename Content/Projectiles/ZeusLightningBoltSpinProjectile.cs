@@ -110,7 +110,7 @@ namespace Growrarria.Content.Projectiles
                 Vector2 moveDirection = targetPos - Projectile.Center;
                 float distance = moveDirection.Length();
 
-                if (flightTimer >= 60 || distance < 12f) 
+                if (flightTimer >= 90 || distance < 12f) 
                 {
                     IsDetached = 2f;
                 }

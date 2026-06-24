@@ -55,7 +55,7 @@ namespace Growrarria.Content.Items
             }
             else // Left Click (Normal Throwing Configuration)
             {
-                Item.useStyle = ItemUseStyleID.Shoot;
+                Item.useStyle = ItemUseStyleID.Swing;
                 Item.useTime = 15;
                 Item.useAnimation = 15;
                 Item.autoReuse = true;
