@@ -34,4 +34,5 @@ Projectiles: {
 	FlameScytheProjectile.DisplayName: Flame Scythe Projectile
 	FlameBreath.DisplayName: Flame Breath
 	ZeusLightningBoltProjectile.DisplayName: Zeus Lightning Bolt Projectile
+	ZeusLightningBoltSpinProjectile.DisplayName: Zeus Lightning Bolt Spin Projectile
 }

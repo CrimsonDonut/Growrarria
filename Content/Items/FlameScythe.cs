@@ -58,6 +58,7 @@ namespace Growrarria.Content.Items
                 Item.useTime      = 25;
                 Item.useAnimation = 25;
                 Item.noMelee      = false;
+                Item.autoReuse    = true;
 				
 
             }
