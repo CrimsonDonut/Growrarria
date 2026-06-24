@@ -21,6 +21,11 @@ Items: {
 		DisplayName: Blazing Electro Wings
 		Tooltip: It's shocking what they're doing with wings these days.
 	}
+
+	ZeusLightningBolt: {
+		DisplayName: Zeus Lightning Bolt
+		Tooltip: ""
+	}
 }
 
 Projectiles: {
@@ -28,4 +33,5 @@ Projectiles: {
 	SkyThunderbolt.DisplayName: Sky Thunderbolt
 	FlameScytheProjectile.DisplayName: Flame Scythe Projectile
 	FlameBreath.DisplayName: Flame Breath
+	ZeusLightningBoltProjectile.DisplayName: Zeus Lightning Bolt Projectile
 }
