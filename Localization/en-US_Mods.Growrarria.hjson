@@ -24,7 +24,12 @@ Items: {
 
 	ZeusLightningBolt: {
 		DisplayName: Zeus Lightning Bolt
-		Tooltip: ""
+		Tooltip:
+			'''
+			It's 1.21 gigawatts in the palm of your hand! 
+			Left-Click to throw frighteningly fast lightning bolts. 
+			Hold Right-Click to charge a spin attack that follows your cursor.
+			'''
 	}
 }
 

@@ -49,7 +49,7 @@ namespace Growrarria.Content.Items
             ascentWhenFalling = 0.85f;
             ascentWhenRising = 0.15f;
             maxAscentSpeed = 6.25f;
-            ascentModifier = 2.5f;
+            ascentModifier = 2f;
             ascentSpeedUp = 1.5f;
         }
 
@@ -57,7 +57,7 @@ namespace Growrarria.Content.Items
         {
             tooltips.Add(new TooltipLine(Mod, "WingsAbility1", "Allows flight and slow fall"));
             tooltips.Add(new TooltipLine(Mod, "WingsAbility2", "Double tap LEFT or RIGHT to perform a damaging lightning phase dash"));
-            tooltips.Add(new TooltipLine(Mod, "WingsAbility3", "Grants Terraspark sprinting speeds and total liquid movement immunity"));
+            tooltips.Add(new TooltipLine(Mod, "WingsAbility3", "The wearer can run super fast, kachow! And total liquid movement immunity"));
         }
 
         public override void AddRecipes()

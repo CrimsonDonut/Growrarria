@@ -49,6 +49,9 @@ namespace Growrarria.Content.Players
             if (rightTapTimer > 0) rightTapTimer--;
             if (sprintSoundTimer > 0) sprintSoundTimer--;
 
+            // Safely fetch our custom dust registry reference ID
+            int customDustType = ModContent.DustType<Dusts.ElectricDust>();
+
             // 1. PROCESS ACTIVE DASH PHYSICS & ENEMY REAPING
             if (dashActiveTimer > 0)
             {
@@ -80,10 +83,11 @@ namespace Growrarria.Content.Players
 
                             npc.immune[Player.whoAmI] = 12;
 
+                            // Custom dust explosion on enemy hit
                             for (int k = 0; k < 8; k++)
                             {
-                                int d = Dust.NewDust(npc.position, npc.width, npc.height, DustID.GoldFlame, 
-                                    Main.rand.NextFloat(-5f, 5f), Main.rand.NextFloat(-5f, 5f), 100, default, 2.5f);
+                                int d = Dust.NewDust(npc.position, npc.width, npc.height, customDustType, 
+                                    Main.rand.NextFloat(-5f, 5f), Main.rand.NextFloat(-5f, 5f), 0, default, 1.8f);
                                 Main.dust[d].noGravity = true;
                             }
                         }
@@ -92,9 +96,10 @@ namespace Growrarria.Content.Players
 
                 if (Main.netMode != NetmodeID.Server)
                 {
+                    // Custom dust trails during dash movement
                     for (int i = 0; i < 4; i++) 
                     {
-                        int d1 = Dust.NewDust(Player.position, Player.width, Player.height, DustID.GoldFlame, -Player.velocity.X * 0.25f, Main.rand.NextFloat(-1.5f, 1.5f), 100, default, 2.2f);
+                        int d1 = Dust.NewDust(Player.position, Player.width, Player.height, customDustType, -Player.velocity.X * 0.25f, Main.rand.NextFloat(-1.5f, 1.5f), 0, default, 1.6f);
                         Main.dust[d1].noGravity = true;
                         Lighting.AddLight(Player.position, 1.5f, 1.2f, 0.3f);
                     }
@@ -132,10 +137,12 @@ namespace Growrarria.Content.Players
                 if (Main.rand.NextBool(2)) 
                 {
                     Vector2 footCoordinates = new Vector2(Player.position.X, Player.position.Y + Player.height - 2f);
-                    int dEnergy = Dust.NewDust(footCoordinates, Player.width, 2, DustID.GoldFlame, -Player.velocity.X * 0.35f, Main.rand.NextFloat(-1.2f, -0.2f), 100, default, 2.3f);
+                    
+                    // Foot sprint dust lines converted to your custom sprite
+                    int dEnergy = Dust.NewDust(footCoordinates, Player.width, 2, customDustType, -Player.velocity.X * 0.35f, Main.rand.NextFloat(-1.2f, -0.2f), 0, default, 1.5f);
                     Main.dust[dEnergy].noGravity = true;
 
-                    int dGlow = Dust.NewDust(footCoordinates, Player.width, 2, DustID.YellowTorch, -Player.velocity.X * 0.15f, Main.rand.NextFloat(-0.5f, 0f), 150, default, 1.8f);
+                    int dGlow = Dust.NewDust(footCoordinates, Player.width, 2, customDustType, -Player.velocity.X * 0.15f, Main.rand.NextFloat(-0.5f, 0f), 0, default, 1.2f);
                     Main.dust[dGlow].noGravity = true;
 
                     Lighting.AddLight(footCoordinates, 1.2f, 1.0f, 0.2f);
@@ -152,12 +159,12 @@ namespace Growrarria.Content.Players
                 sprintSoundTimer = 0;
             }
 
-            // Blazing Flight Trails
+            // Custom Blazing Flight Trails
             if (Player.wingTime < 180 && Player.velocity.Y != 0f && !Player.mount.Active)
             {
                 if (Main.rand.NextBool(2)) 
                 {
-                    int d = Dust.NewDust(Player.position, Player.width, Player.height, DustID.GoldFlame, -Player.velocity.X * 0.25f, -Player.velocity.Y * 0.25f, 120, default, 1.9f);
+                    int d = Dust.NewDust(Player.position, Player.width, Player.height, customDustType, -Player.velocity.X * 0.25f, -Player.velocity.Y * 0.25f, 0, default, 1.4f);
                     Main.dust[d].noGravity = true;
                     Lighting.AddLight(Player.position, 0.8f, 0.65f, 0.1f);
                 }
@@ -176,7 +183,8 @@ namespace Growrarria.Content.Players
                             ? new Vector2(Player.position.X + Main.rand.Next(-2, Player.width + 2), Player.position.Y + Player.height - 2f)
                             : Player.Center + Main.rand.NextVector2Circular(16f, 22f);
 
-                        int dIdle = Dust.NewDust(sparkSpawnPosition, 2, 2, DustID.GoldFlame, Main.rand.NextFloat(-0.5f, 0.5f), Main.rand.NextFloat(-1.0f, -0.2f), 180, default, 1.4f);
+                        // Idle standing sparks converted to your custom sprite
+                        int dIdle = Dust.NewDust(sparkSpawnPosition, 2, 2, customDustType, Main.rand.NextFloat(-0.5f, 0.5f), Main.rand.NextFloat(-1.0f, -0.2f), 0, default, 1.1f);
                         Main.dust[dIdle].noGravity = true;
                     }
                 }
@@ -184,24 +192,21 @@ namespace Growrarria.Content.Players
         }
 
         // --- NEW: FRAME HIJACK ENGINE ---
-        // Overrides the player's wing textures after vanilla movement states are determined
         public override void PostUpdate()
         {
             if (!hasBlazingElectroWings)
                 return;
 
-            // Check if the character is standing completely still on solid ground
             if (Player.velocity.X == 0f && Math.Abs(Player.velocity.Y) <= 0.45f && !Player.mount.Active)
             {
                 idleWingFrameCounter++;
                 
-                // Swap frames every 24 ticks (roughly every 0.4 seconds) for a smooth, natural breathing pace
                 if (idleWingFrameCounter >= 24) 
                 {
                     idleWingFrameCounter = 0;
                     idleWingFrame++;
                     
-                    if (idleWingFrame > 1) // Cycle strictly between Frame 0 and Frame 1
+                    if (idleWingFrame > 1) 
                     {
                         idleWingFrame = 0;
                     }
@@ -211,13 +216,9 @@ namespace Growrarria.Content.Players
             }
             else
             {
-                // Reset timers immediately when moving so the animation starts fresh on your next stop
                 idleWingFrameCounter = 0;
                 idleWingFrame = 0;
 
-                // AUTOMATED OFFSET SHIFTER:
-                // When flying or gliding, vanilla applies frames 1, 2, 3, 4. 
-                // We add 1 to push them to frames 2, 3, 4, 5 so your flight animations don't bleed into your idle breathing frames!
                 if (Player.wingFrame > 0)
                 {
                     Player.wingFrame += 1;

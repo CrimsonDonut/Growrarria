@@ -64,7 +64,7 @@ namespace Growrarria.Content.Projectiles
 
                 if (Main.dedServ == false && !SoundEngine.TryGetActiveSound(loopingSoundSlot, out _))
                 {
-                    SoundStyle spinLoopStyle = SoundID.Item15 with { IsLooped = true, Volume = 0.8f };
+                    SoundStyle spinLoopStyle = SoundID.Item109 with { IsLooped = true, Volume = 0.8f };
                     loopingSoundSlot = SoundEngine.PlaySound(spinLoopStyle, Projectile.Center);
                 }
 

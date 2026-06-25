@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Growrarria")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f620daff9302b0d11b8f81f87149a22e15efc395")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+65dcb2d3121985f4730dbbfa86b438846f35c5b3")]
 [assembly: System.Reflection.AssemblyProductAttribute("Growrarria")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Growrarria")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

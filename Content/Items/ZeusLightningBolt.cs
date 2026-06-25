@@ -12,7 +12,7 @@ namespace Growrarria.Content.Items
         {
             Item.width = 32;
             Item.height = 32;
-            Item.damage = 60;
+            Item.damage = 100;
             Item.DamageType = DamageClass.Magic;
             Item.useTime = 15;        
             Item.useAnimation = 15;   
@@ -80,6 +80,15 @@ namespace Growrarria.Content.Items
 
                 return true; 
             }
+        }
+        public override void AddRecipes()
+        {
+            Recipe recipe = CreateRecipe();
+            recipe.AddIngredient(ItemID.ThunderStaff, 1);
+            recipe.AddIngredient(ItemID.ThunderSpear, 1);
+			recipe.AddIngredient(ItemID.MonkStaffT3, 1);
+            recipe.AddTile(TileID.Anvils);
+            recipe.Register();
         }
     }
 }
