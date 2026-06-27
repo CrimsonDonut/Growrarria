@@ -28,7 +28,7 @@ namespace Growrarria.Content.Projectiles
             Projectile.localNPCHitCooldown = 10;
             Projectile.alpha = 0; 
         }
-
+                   
         public override void AI()
         {
             float age = 45f - Projectile.timeLeft;

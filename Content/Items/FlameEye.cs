@@ -8,7 +8,7 @@ namespace Growrarria.Content.Items
 {
     // Eye accessory that grants the flamethrower ability when Q is held.
     // The active logic lives in FlameEyePlayer.UpdateAccessory below.
-    [AutoloadEquip(EquipType.Face)]
+
     public class FlameEye : ModItem
     {
         public override void SetDefaults()

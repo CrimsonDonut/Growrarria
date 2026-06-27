@@ -31,6 +31,11 @@ Items: {
 			Hold Right-Click to charge a spin attack that follows your cursor.
 			'''
 	}
+
+	CosmicCape: {
+		DisplayName: Cosmic Cape
+		Tooltip: ""
+	}
 }
 
 Projectiles: {

@@ -4,6 +4,7 @@ using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Growrarria.Content.Projectiles;
+using Terraria.Audio;
 
 namespace Growrarria.Content.Players
 {
@@ -42,9 +43,9 @@ namespace Growrarria.Content.Players
             {
                 dustTimer = 0;
 
-                // Eye position: slightly in front of and above the player center
+                // Eye position: face equip sits on the head, which is ~14px above MountedCenter
                 Vector2 eyePos = Player.MountedCenter
-                    + new Vector2(4f * Player.direction, -10f);
+                    + new Vector2(5f * Player.direction, -14f);
 
                 int d = Dust.NewDust(
                     eyePos, 2, 2,
@@ -76,6 +77,7 @@ namespace Growrarria.Content.Players
                 {
                     SpawnFlameBreath();
                     attackCooldown = 5;
+                    SoundEngine.PlaySound(SoundID.Item34, Player.position);
                 }
             }
         }
